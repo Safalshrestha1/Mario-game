@@ -1233,3 +1233,23 @@ const Game = (() => {
     mobilePress, mobileRelease
   };
 })();
+function resizeCanvas() {
+  const canvas = document.getElementById("canvas");
+
+  const aspectRatio = 9 / 16; // portrait
+
+  let w = window.innerWidth;
+  let h = window.innerHeight;
+
+  if (h > w / aspectRatio) {
+    h = w / aspectRatio;
+  } else {
+    w = h * aspectRatio;
+  }
+
+  canvas.style.width = w + "px";
+  canvas.style.height = h + "px";
+}
+
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener("load", resizeCanvas);
