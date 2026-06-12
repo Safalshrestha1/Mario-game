@@ -1032,10 +1032,23 @@ const Game = (() => {
 
   // ── Resize ─────────────────────────────────────────────
   function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+  let aspect = 9 / 16;
+
+  let w = window.innerWidth;
+  let h = window.innerHeight;
+
+  if (w / h > aspect) {
+    w = h * aspect;
+  } else {
+    h = w / aspect;
   }
 
+  canvas.width = w;
+  canvas.height = h;
+
+  W = w;
+  H = h;
+}
   // ── High Scores ────────────────────────────────────────
   function saveScore() {
     highScores.push({ score, coins, world: worldNum + '-' + levelNum, ts: Date.now() });
