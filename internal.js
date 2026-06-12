@@ -1266,3 +1266,15 @@ function resizeCanvas() {
 
 window.addEventListener("resize", resizeCanvas);
 window.addEventListener("load", resizeCanvas);
+function checkOrientation() {
+  const overlay = document.getElementById("rotate");
+
+  if (window.innerHeight > window.innerWidth) {
+    overlay.style.display = "flex";
+  } else {
+    overlay.style.display = "none";
+  }
+}
+
+window.addEventListener("load", checkOrientation);
+window.addEventListener("resize", checkOrientation);
