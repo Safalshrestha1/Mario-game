@@ -1032,7 +1032,7 @@ const Game = (() => {
 
   // ── Resize ─────────────────────────────────────────────
   function resize() {
-  let aspect = 9 / 16;
+  let aspect = 16 / 9;
 
   let w = window.innerWidth;
   let h = window.innerHeight;
