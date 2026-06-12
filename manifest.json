@@ -1,0 +1,31 @@
+{
+  "name": "Super Mario Adventure",
+  "short_name": "Mario",
+  "description": "A full-featured Super Mario platform game playable on mobile and desktop.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#5c94fc",
+  "theme_color": "#5c94fc",
+  "lang": "en",
+  "categories": ["games"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    { "src": "screenshot-wide.png",   "sizes": "1280x720",  "type": "image/png", "form_factor": "wide" },
+    { "src": "screenshot-narrow.png", "sizes": "390x844",   "type": "image/png", "form_factor": "narrow" }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.yourdomain.mario"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/super-mario-adventure/id000000000"
+    }
+  ]
+}

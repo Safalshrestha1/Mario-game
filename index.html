@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#5c94fc">
+  <title>Super Mario Adventure</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="Mario">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --sky: #5c94fc;
+      --mario-red: #e52521;
+      --coin-gold: #ffd700;
+      --ground-brown: #c07022;
+      --brick-red: #c84c0c;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--sky);
+      font-family: 'Press Start 2P', 'Courier New', monospace;
+      touch-action: none;
+    }
+
+    @font-face {
+      font-family: 'Press Start 2P';
+      src: url('https://fonts.gstatic.com/s/pressstart2p/v15/e3t4euO8T-267oIAQAu6jDQyK3nYivN04w.woff2') format('woff2');
+    }
+
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--sky);
+    }
+
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    /* HUD overlay */
+    #hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 8px 16px;
+      color: white;
+      font-size: clamp(8px, 2.5vw, 14px);
+      text-shadow: 2px 2px #000;
+      pointer-events: none;
+      z-index: 10;
+      background: linear-gradient(rgba(0, 0, 0, 0.3), transparent);
+    }
+
+    .hud-block {
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    .hud-label {
+      font-size: 0.7em;
+      opacity: 0.8;
+    }
+
+    /* Screen overlays */
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      z-index: 20;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .screen.hidden {
+      display: none;
+    }
+
+    .screen h1 {
+      font-size: clamp(20px, 5vw, 40px);
+      color: var(--coin-gold);
+      margin-bottom: 16px;
+      text-shadow: 3px 3px #c00;
+      animation: titlePulse 1s ease-in-out infinite alternate;
+    }
+
+    .screen h2 {
+      font-size: clamp(14px, 3.5vw, 26px);
+      color: var(--coin-gold);
+      margin-bottom: 12px;
+    }
+
+    .screen p {
+      font-size: clamp(8px, 2vw, 13px);
+      margin: 6px 0;
+      color: #eee;
+      line-height: 1.8;
+    }
+
+    .btn {
+      margin: 10px 6px;
+      padding: clamp(10px, 2vw, 14px) clamp(18px, 4vw, 30px);
+      font-family: inherit;
+      font-size: clamp(9px, 2vw, 13px);
+      color: white;
+      background: var(--mario-red);
+      border: 4px solid #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.1s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn:hover,
+    .btn:active {
+      transform: scale(0.95);
+      background: #ff4444;
+    }
+
+    .btn.gold {
+      background: #c8a000;
+    }
+
+    .btn.gold:hover {
+      background: #e6b800;
+    }
+
+    /* Mobile controls */
+    #mobile-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: none;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 10px 16px 16px;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .ctrl-group {
+      display: flex;
+      gap: 6px;
+      align-items: flex-end;
+      pointer-events: all;
+    }
+
+    .ctrl-btn {
+      width: clamp(52px, 14vw, 68px);
+      height: clamp(52px, 14vw, 68px);
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(20px, 5vw, 28px);
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(4px);
+      color: white;
+      transition: background 0.1s, transform 0.08s;
+      pointer-events: all;
+    }
+
+    .ctrl-btn:active,
+    .ctrl-btn.pressed {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(0.92);
+    }
+
+    .ctrl-btn.run {
+      background: rgba(230, 35, 33, 0.5);
+    }
+
+    .ctrl-btn.jump {
+      background: rgba(92, 148, 252, 0.55);
+      width: clamp(60px, 16vw, 76px);
+      height: clamp(60px, 16vw, 76px);
+      font-size: clamp(24px, 6vw, 32px);
+    }
+
+    /* Level complete banner */
+    #level-banner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: var(--coin-gold);
+      color: #333;
+      padding: 20px 40px;
+      border-radius: 8px;
+      font-size: clamp(14px, 3.5vw, 22px);
+      z-index: 25;
+      text-align: center;
+      border: 4px solid #fff;
+      transition: transform 0.3s cubic-bezier(.34, 1.56, .64, 1);
+      white-space: nowrap;
+    }
+
+    #level-banner.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* Power-up popup */
+    #powerup-popup {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(0, 0, 0, 0.8);
+      color: var(--coin-gold);
+      padding: 8px 18px;
+      border-radius: 4px;
+      font-size: clamp(8px, 2vw, 12px);
+      z-index: 25;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+    }
+
+    #powerup-popup.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Life icons */
+    .life-icons {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    @keyframes titlePulse {
+      from {
+        text-shadow: 3px 3px #c00;
+      }
+
+      to {
+        text-shadow: 3px 3px #c00, 0 0 20px #ffd700;
+      }
+    }
+
+    @keyframes coinSpin {
+
+      0%,
+      100% {
+        transform: scaleX(1)
+      }
+
+      50% {
+        transform: scaleX(0.1)
+      }
+    }
+
+    @keyframes starFloat {
+      0% {
+        transform: translateY(0) rotate(0)
+      }
+
+      100% {
+        transform: translateY(-30px) rotate(360deg)
+      }
+    }
+
+    /* Pause menu */
+    #pause-screen .btn {
+      min-width: 200px;
+    }
+
+    /* Settings */
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 340px;
+      margin: 8px 0;
+      font-size: clamp(8px, 2vw, 11px);
+    }
+
+    .toggle {
+      width: 44px;
+      height: 24px;
+      background: #555;
+      border-radius: 12px;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+    }
+
+    .toggle.on {
+      background: #22c55e;
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 0.2s;
+    }
+
+    .toggle.on::after {
+      transform: translateX(20px);
+    }
+
+    .volume-slider {
+      -webkit-appearance: none;
+      width: 120px;
+      height: 6px;
+      border-radius: 3px;
+      background: #555;
+      outline: none;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--coin-gold);
+      cursor: pointer;
+    }
+
+    #scores-list {
+      width: 100%;
+      max-width: 340px;
+      margin: 10px 0;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: clamp(7px, 1.8vw, 10px);
+      padding: 4px 0;
+      border-bottom: 1px solid #333;
+    }
+
+    .score-row:first-child {
+      color: var(--coin-gold);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="game-container">
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-block">
+        <div class="hud-label">MARIO</div>
+        <div id="hud-score">000000</div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-label">COINS</div>
+        <div id="hud-coins">🪙 00</div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-label">WORLD</div>
+        <div id="hud-world">1-1</div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-label">TIME</div>
+        <div id="hud-time">400</div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-label">LIVES</div>
+        <div class="life-icons" id="hud-lives">❤️❤️❤️</div>
+      </div>
+    </div>
+
+    <!-- Main Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Level Banner -->
+    <div id="level-banner">WORLD 1-1</div>
+    <div id="powerup-popup">🍄 SUPER MARIO!</div>
+
+    <!-- START SCREEN -->
+    <div class="screen" id="start-screen">
+      <h1>⭐ SUPER MARIO ⭐</h1>
+      <p>ADVENTURE</p>
+      <br>
+      <div style="font-size:clamp(40px,12vw,80px); margin:10px 0;">🍄</div>
+      <br>
+      <button class="btn" onclick="Game.startGame()">▶ START GAME</button>
+      <button class="btn gold" onclick="Game.showHighScores()">🏆 HIGH SCORES</button>
+      <button class="btn" style="background:#444" onclick="Game.showSettings()">⚙ SETTINGS</button>
+      <br><br>
+      <p style="font-size:clamp(7px,1.5vw,9px); opacity:0.6;">KEYBOARD: ← → MOVE | ↑/Z/SPACE JUMP | X/SHIFT RUN<br>HOLD
+        RUN + JUMP FOR LONG JUMP</p>
+    </div>
+
+    <!-- PAUSE SCREEN -->
+    <div class="screen hidden" id="pause-screen">
+      <h2>⏸ PAUSED</h2>
+      <br>
+      <button class="btn" onclick="Game.resume()">▶ RESUME</button>
+      <button class="btn gold" onclick="Game.restartLevel()">↺ RESTART LEVEL</button>
+      <button class="btn" style="background:#444" onclick="Game.showSettings()">⚙ SETTINGS</button>
+      <button class="btn" style="background:#222" onclick="Game.goToMenu()">🏠 MAIN MENU</button>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div class="screen hidden" id="gameover-screen">
+      <h2>GAME OVER</h2>
+      <br>
+      <div style="font-size:clamp(32px,9vw,60px);">💀</div>
+      <br>
+      <p id="go-score">SCORE: 000000</p>
+      <p id="go-coins">COINS: 00</p>
+      <br>
+      <button class="btn" onclick="window.startGame()">▶ PLAY AGAIN</button>
+      <button class="btn" style="background:#444" onclick="Game.goToMenu()">🏠 MAIN MENU</button>
+    </div>
+
+    <!-- VICTORY SCREEN -->
+    <div class="screen hidden" id="victory-screen">
+      <h1>🎉 YOU WIN! 🎉</h1>
+      <div style="font-size:clamp(32px,9vw,60px); margin:10px 0;">⭐</div>
+      <p id="win-score">FINAL SCORE: 000000</p>
+      <p id="win-coins">COINS: 00</p>
+      <p id="win-time">TIME BONUS: 0</p>
+      <br>
+      <button class="btn gold" onclick="Game.nextLevel()">▶ NEXT WORLD</button>
+      <button class="btn" onclick="Game.startGame()">↺ PLAY AGAIN</button>
+      <button class="btn" style="background:#444" onclick="Game.goToMenu()">🏠 MAIN MENU</button>
+    </div>
+
+    <!-- SETTINGS SCREEN -->
+    <div class="screen hidden" id="settings-screen">
+      <h2>⚙ SETTINGS</h2>
+      <br>
+      <div class="setting-row">
+        <span>🔊 SOUND</span>
+        <div class="toggle on" id="toggle-sound" onclick="Game.toggleSound()"></div>
+      </div>
+      <div class="setting-row">
+        <span>🎵 MUSIC</span>
+        <div class="toggle on" id="toggle-music" onclick="Game.toggleMusic()"></div>
+      </div>
+      <div class="setting-row">
+        <span>🔈 VOLUME</span>
+        <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="70"
+          oninput="Game.setVolume(this.value)">
+      </div>
+      <div class="setting-row">
+        <span>📱 MOBILE CONTROLS</span>
+        <div class="toggle on" id="toggle-mobile" onclick="Game.toggleMobileControls()"></div>
+      </div>
+      <div class="setting-row">
+        <span>⚡ PARTICLES</span>
+        <div class="toggle on" id="toggle-particles" onclick="Game.toggleParticles()"></div>
+      </div>
+      <br>
+      <button class="btn" onclick="Game.closeSettings()">✓ DONE</button>
+    </div>
+
+    <!-- HIGH SCORES SCREEN -->
+    <div class="screen hidden" id="scores-screen">
+      <h2>🏆 HIGH SCORES</h2>
+      <div id="scores-list"></div>
+      <br>
+      <button class="btn" onclick="Game.goToMenu()">← BACK</button>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div id="mobile-controls">
+      <div class="ctrl-group">
+        <div class="ctrl-btn" id="btn-left" ontouchstart="Game.mobilePress('left')"
+          ontouchend="Game.mobileRelease('left')">◀</div>
+        <div class="ctrl-btn" id="btn-right" ontouchstart="Game.mobilePress('right')"
+          ontouchend="Game.mobileRelease('right')">▶</div>
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-btn run" id="btn-run" ontouchstart="Game.mobilePress('run')"
+          ontouchend="Game.mobileRelease('run')">B</div>
+        <div class="ctrl-btn jump" id="btn-jump" ontouchstart="Game.mobilePress('jump')"
+          ontouchend="Game.mobileRelease('jump')">A</div>
+      </div>
+    </div>
+  </div>
+  <script src="internal.js"></script>
+</body>
+
+</html>
