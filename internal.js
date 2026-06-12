@@ -1278,3 +1278,10 @@ function checkOrientation() {
 
 window.addEventListener("load", checkOrientation);
 window.addEventListener("resize", checkOrientation);
+document.addEventListener("touchstart", function (e) {
+  e.preventDefault();
+}, { passive: false });
+
+document.addEventListener("touchmove", function (e) {
+  e.preventDefault();
+}, { passive: false });
